@@ -1,0 +1,34 @@
+[
+    {
+      "action": "Fwa",
+      "method": "GetList",
+      "data": [
+        "lqcWVYFl7qoQ7P0dg__a2bfnUSmyaXw4Ed__a2bIqSG2wcF__a2fWVRFQCQFpk4aeljEzVgKiUQ__a2brYrc7hz__a2fQcNWf0c2qQqlLj5bTp7aFcyTuJN3BrNc1TcHYPD5T__a2fB9qg5iLGyaChUMhCRaGWUL5rnXQZAWR9w7Vfm038jKkSxxJNjXemiVjMe4beBOPFUn__a2bwTxORkIlRXdMxMcusZ1Lm__a2fsZgBnvotaXg__a3d__a3d",
+        "Lfbxg1ffszI9XrfSdoC__a2bzw__a3d__a3d",
+        0,
+        200,
+        "00001",
+        "Thu Mar 02 2023",
+        false,
+        null
+      ],
+      "type": "rpc",
+      "tid": 32
+    },
+    {
+      "action": "Wbs1",
+      "method": "GetList",
+      "data": [
+        "lqcWVYFl7qoQ7P0dg__a2bfnUSmyaXw4Ed__a2bIqSG2wcF__a2fWVRFQCQFpk4aeljEzVgKiUQ__a2brYrc7hz__a2fQcNWf0c2qQqlLj5bTp7aFcyTuJN3BrNc1TcHYPD5T__a2fB9qg5iLGyaChUMhCRaGWUL5rnXQZAWR9w7Vfm038jKkSxxJNjXemiVjMe4beBOPFUn__a2bwTxORkIlRXdMxMcusZ1Lm__a2fsZgBnvotaXg__a3d__a3d",
+        "Lfbxg1ffszI9XrfSdoC__a2bzw__a3d__a3d",
+        0,
+        10000,
+        null,
+        "00001",
+        true,
+        "FWA"
+      ],
+      "type": "rpc",
+      "tid": 33
+    }
+  ]

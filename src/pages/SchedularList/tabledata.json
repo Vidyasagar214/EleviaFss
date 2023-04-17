@@ -1,0 +1,110 @@
+[
+    {
+        "athlete": "Michael Phelps",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2001",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael Phelps",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2002",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael 324",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2003",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael 345",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2004",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael 765",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2005",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael 123",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2006",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael 123",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/04/2006",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": " Phelps",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2007",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    },
+    {
+        "athlete": "Michael ",
+        "age": 27,
+        "country": "United States",
+        "year": 2012,
+        "date": "12/08/2008",
+        "sport": "Swimming",
+        "gold": 4,
+        "silver": 2,
+        "bronze": 0,
+        "total": 6
+    }
+]

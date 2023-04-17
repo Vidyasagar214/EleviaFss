@@ -1,0 +1,47 @@
+.notes{
+  padding:5px;
+  min-height:50px;
+  border-radius:11px;
+}
+
+.notes.mine {
+  color:white;
+  border-color:#f91919;
+  background-color:#f91919
+}
+
+.notes.other {
+  color:#000000;
+  border-color:#f6f6f6;
+  background-color:#f6f6f6;
+}
+
+.message {
+  word-wrap: break-word;
+}
+
+.message-datetime{
+  font: 100 0.6rem/1.23em 'Open Sans', 'Helvetica Neue', helvetica, arial, sans-serif;
+  text-align: right;
+  //width: 264px;
+  margin-top: 9px;
+}
+
+.message-name-mine {
+  margin-top:10px;
+  text-align: right;
+}
+
+.message-name-other {
+  margin-top:10px;
+  text-align: left;
+}
+
+.filterbar-segmented-button {
+  padding-left: 18%;
+  color: blue;
+}
+.filterbar-segmented-button-pressed{
+  background-color: blue;
+  color: white;
+}

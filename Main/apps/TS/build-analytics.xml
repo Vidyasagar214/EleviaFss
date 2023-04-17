@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="x-app-build-analytics" default=".help">
+
+    <property file="${basedir}/analytics.properties" />
+
+    <target name="-compile-analytics">
+
+        <if>
+            <x-is-true value="${analytics.appversion.usegit}" />
+                <then>
+                    <exec executable="bash" outputproperty="analytics.appversion.commit">
+                        <arg value="-c" />
+                        <arg value='git describe --all --long | cut -d "-" -f 3' />
+                    </exec>
+                </then>
+        </if>
+
+        <!--<if>-->
+            <!--<x-is-true value="${build.options.debug}"/>-->
+            <!--<then>-->
+                <!--<echo file="${basedir}/analytics.js" append="false">-->
+                    <!--window._trackJs = {-->
+                        <!--token: '${analytics.trackjs.token}',-->
+                        <!--application: '${analytics.trackjs.keys.testing}',-->
+                        <!--onError: function (payload, error) {-->
+                            <!--console.log('%c Debug TrackJS onError: '+(error || ''),'background:rgba(255,0,0,0.3)',payload);-->
+                            <!--return true;-->
+                        <!--}-->
+                    <!--};-->
+                <!--</echo>-->
+            <!--</then>-->
+            <!--<else>-->
+                <!--<echo file="${basedir}/analytics.js" append="false">-->
+                    <!--window._trackJs = {-->
+                        <!--token: '${analytics.trackjs.token}',-->
+                        <!--application: '${analytics.trackjs.keys.production}'-->
+                    <!--};-->
+                <!--</echo>-->
+            <!--</else>-->
+        <!--</if>-->
+
+        <if>
+            <and>
+                <istrue value="${build.options.debug}" />
+                <length string="${analytics.google.token}" when="greater" length="0" />
+            </and>
+            <then>
+                <echo file="${basedir}/analytics.js" append="true">
+                    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                    })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
+
+                    ga('create', '${analytics.google.token}', 'auto');
+                    ga('send', 'pageview');
+                </echo>
+            </then>
+        </if>
+
+        <concat destfile="${basedir}/analytics.js" append="true">
+            <fileset file="${basedir}/tracker.js"/>
+        </concat>
+
+        <delete file="${basedir}/tracker.js"/>
+
+    </target>
+
+</project>

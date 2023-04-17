@@ -1,0 +1,299 @@
+Ext.define('TS.controller.SignatureController', {
+    extend: 'TS.controller.fwa.AttachmentController',
+    alias: 'controller.window-signature',
+
+    sigDown: false,
+
+    config: {
+        sprite: null
+    },
+
+
+    //TODO @Sencha ?
+    init: function () {
+        var me = this,
+            vw = me.getView(),
+            emailAddress = vw.lookup('emailAddressField'),
+            sendEmail = vw.lookup('checkEmailField');
+
+        emailAddress.setHidden(!vw.showEmailFunction);
+        sendEmail.setHidden(!vw.showEmailFunction);
+        //set approval html value as described by user
+        if (vw.signatureHtml)
+            vw.lookup('approvalText').setValue(vw.signatureHtml);
+        vw.lookup('approvalText').setHidden(!vw.signatureHtml);
+    },
+
+    /*
+     * Mouse Event Handlers
+     */
+    onSignatureDown: function (e) {
+        this.sigDown = true;
+        var sprite = this.getSprite();
+        if (sprite) {
+            var xy = this.lookup('sigDrawPanel').getSurface().getEventXY(e);
+            sprite.setAttributes({
+                path: sprite.attr.path + ' M' + (xy[0]) + ',' + (xy[1])
+            });
+        }
+    },
+    onSignatureUp: function (e) {
+        var button = this.lookup('saveSignatureButton');
+        button.setDisabled(false);
+        this.sigDown = false;
+        this.setSprite(null);
+    },
+    onSignatureMove: function (e) {
+        var me = this,
+            sprite,
+            path;
+
+        if (this.sigDown) {
+            var drawing = me.lookup('sigDrawPanel'),
+                xy = drawing.getSurface().getEventXY(e);
+            if (!me.getSprite()) {
+                sprite = drawing.getSurface().add({
+                    type: 'path',
+                    path: 'M' + (xy[0]) + ',' + (xy[1]),
+                    strokeStyle: 'black',
+                    lineWidth: 2,
+                    lineCap: 'round'
+                }).show();
+                me.setSprite(sprite);
+            } else {
+                sprite = me.getSprite();
+                path = sprite.attr.path;
+                path += ' ' + (xy[0]) + ',' + (xy[1]);
+                sprite.setAttributes({
+                    path: path
+                });
+            }
+            drawing.getSurface().renderFrame();
+        }
+    },
+
+    /*
+     * Action Buttons
+     */
+
+    doSaveSignature: function () {
+        this.getView().setLoading(true);
+        var me = this,
+            vw = me.getView(),
+            settings = TS.app.settings,
+            attType = me.getView().attType,
+            // Get the references and image data, convert to blob
+            draw = me.lookup('sigDrawPanel'),
+            imageData = draw.getImage('stream'),
+            file = new Blob([imageData.data], {
+                type: 'image/' + imageData.type
+            }),
+            isScheduler = me.getViewModel().get('isScheduler'),
+            base64 = imageData.data.split('base64,')[1],
+            binary_string = window.atob(base64),
+            len = binary_string.length,
+            bytesArray = [],
+            fwa = Ext.first('#fwaForm').getForm(),
+            emailAddress = vw.lookup('emailAddressField'),
+            sendEmail = vw.lookup('checkEmailField').getValue(),
+            offset = new Date().getTimezoneOffset() / 60,
+            fwaUnitGrid = Ext.first('grid-unit'),
+            useEmailPopup = false,
+            sendAttachedEmail = false,
+            saveFirst,
+            emailData,
+            fwaData,
+            data;
+
+        if (sendEmail && !emailAddress.getValue()) {
+            //popup email box
+            useEmailPopup = true;
+            Ext.Msg.alert('Error', 'Please enter a valid email address');
+            vw.setLoading(false);
+            return;
+        } else if (sendEmail && !emailAddress.wasValid) {
+            Ext.Msg.alert('Error', 'Please enter a valid email address');
+            vw.setLoading(false);
+            return;
+        } else if (sendEmail && emailAddress.getValue() && emailAddress.wasValid) {
+            sendAttachedEmail = true;
+            emailData = {
+                app: 'FWA',
+                attachFwa: '1',
+                attachForm: true,
+                modelId: fwa.getRecord().get('fwaId'),
+                body: 'Copy of signed ' + settings.fwaAbbrevLabel + ' attached',
+                cc: window.userGlobal.email,
+                empId: settings.empId,
+                subject: fwa.getRecord().get('fwaName'),
+                to: emailAddress.getValue()
+            };
+        }
+
+        for (var i = 0; i < len; i++) {
+            bytesArray[i] = binary_string.charCodeAt(i);
+        }
+
+        data = {
+            type: 'Fwa',
+            associatedId: me.getView().getAssociatedRecordId(),
+            attachmentType: me.getView().attType,
+            attachedByEmpId: settings.empId,
+            location: settings.imageStorageLoc,
+            fileExt: imageData.type,
+            fileName: 'signature_' + Ext.data.identifier.Uuid.Global.generate(), // TODO - How should this be autogenerated?
+            description: 'Approval Signature',
+            file: file,
+            bytesArray: bytesArray
+        };
+
+         if (me.performRecordUpload(data, true)) {
+            saveFirst = true; //fwa.dirty;
+            me.afterSignatureUpload(attType, imageData.data);
+            if (sendAttachedEmail || useEmailPopup) {
+                fwaData = Ext.clone(fwa.getRecord().data);
+                fwaData = TS.Util.checkFwaForValidDates(fwaData);
+                fwaData = TS.Util.checkFwaGridObjects(fwaData, fwaUnitGrid);
+                fwaData.attachments = [];
+                if (sendAttachedEmail) {
+                    Email.SendEmailWithUnsaved(null, settings.username, settings.empId, emailData, fwaData, offset, saveFirst, function (response, operation, success) {
+                        if (success) {
+                            if (saveFirst) {
+                                fwa.getRecord().set('attachmentsToAdd', []);
+                                fwa.dirty = false;
+                                Ext.Msg.alert('Success', settings.fwaAbbrevLabel + ' has been saved and email sent.');
+                            } else {
+                                Ext.Msg.alert('Success', 'Email sent.');
+                            }
+                        }
+                    }, this, {
+                        autoHandle: true,
+                        failure: function () {
+                            this.getView().setLoading(false);
+                        }.bind(this)
+                    });
+                } else if (useEmailPopup) {
+                    Ext.first('#fwaForm').getController().showEmailWindow(null);
+                    settings.saveFirst = true;
+                }
+            }
+        };
+    },
+
+    afterSignatureUpload: function (signatureType, imageSrc) {
+        // Was this signature from a client or a chief?
+        var fieldsetReference = (signatureType === 'Signature' || signatureType === AttachmentType.ClientSignature ? 'fwaClientApprovalFieldset' : 'fwaChiefApprovalFieldset'),
+            form = Ext.first('#fwaForm'),
+            fwa = form.getRecord();
+
+        form.lookup(fieldsetReference).down('textfield').setValue(Ext.Date.format(new Date(), DATE_FORMAT + ' h:i A')); // TODO - Where does this wire up to the model?
+        form.lookup(fieldsetReference).getController().refreshApproval(imageSrc);
+    },
+
+    // Removes all sprites from the draw panel
+    doClearSignature: function () {
+        this.lookup('sigDrawPanel').removeAll();
+        var button = this.lookup('saveSignatureButton');
+        button.setDisabled(true);
+    },
+
+    doCloseSignature: function (component, e) {
+        this.getView().close();
+    },
+
+    /*
+    * Peforms the actual API save, used by extended VCs
+    */
+    performRecordUpload: function (data, successCallback) {
+
+        var me = this,
+            vw = me.getView(),
+            saveType,
+            dataRecord,
+            file,
+            settings = TS.app.settings,
+            attachmentRecord = Ext.create('TS.model.shared.Attachment', {
+                owningModelType: data.type,
+                owningModelId: data.associatedId,
+                dateAttached: Ext.Date.format(data.date || new Date(), DATE_FORMAT + ' g:i A'),
+                attachedByEmpId: data.attachedByEmpId,
+                attachmentType: data.attachmentType,
+                location: data.location,
+                extension: data.fileExt,
+                filename: data.fileName,
+                description: data.description
+                // includeEmail: data.includeEmail,
+                // emailAddress: data.emailAddress
+            }),
+            fwa,
+            record,
+            attachmentsToAdd,
+            isExpense;
+
+        if (!data.isExpenseGrid) {
+            fwa = Ext.first('#fwaForm') || Ext.first('#expListGrid');
+            record = fwa.getRecord() || fwa.getForm();
+            if (fwa.getRecord()) {
+                attachmentsToAdd = record.get('attachmentsToAdd') || [];
+            } else if (fwa.getForm()) {
+                isExpense = true;
+                attachmentsToAdd = record.attachmentsToAdd || [];
+            }
+        } else {
+            record = data.record;
+            isExpense = true;
+            attachmentsToAdd = record.attachmentsToAdd || [];
+        }
+
+        me.getView().setLoading(true);
+        saveType = (data.attachmentType.charAt(0) == AttachmentType.Document || data.attachmentType.charAt(0) == AttachmentType.Expense) ? 'Document' : (data.attachmentType.charAt(0) == AttachmentType.Photo) ? 'Photo' : 'Signature';
+
+        me.convertFileToByteData(data.file, Ext.bind(function (byteData) {
+            if (saveType == 'Signature')
+                dataRecord = Ext.create('TS.model.shared.AttachmentData', {
+                    attachmentItem: data.bytesArray
+                });
+            else
+                dataRecord = Ext.create('TS.model.shared.AttachmentData', {
+                    attachmentItem: me.arrayToBase64String(byteData) //byteData
+                });
+            attachmentRecord.set('attachmentItem', dataRecord.get('attachmentItem'));
+            attachmentsToAdd.push(attachmentRecord.getData());
+
+            record.set('attachmentsToAdd', attachmentsToAdd);
+
+            me.getView().setLoading(false);
+            me.getView().close();
+            //only reset counts if NOT a work code
+            if (data.associatedId.indexOf('||') === -1) {
+                // Ext.GlobalEvents.fireEvent('ResetAttachmentCounts', data.attachmentType);
+                me.onResetAttachmentCounts(data.attachmentType);
+            }
+
+            if (successCallback) {
+                Ext.first('#fwaForm').getController().updateFwaForm(Ext.first('#showAttachDocButton'), null);
+            }
+            //end new
+        }, me));
+        return true;
+    },
+
+    arrayToBase64String: function (byteData) {
+        var base64s = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+            encOut = "",
+            bits,
+            i = 0;
+
+        while (byteData.length >= i + 3) {
+            bits = (byteData[i++] & 0xff) << 16 | (byteData[i++] & 0xff) << 8 | byteData[i++] & 0xff;
+            encOut += base64s.charAt((bits & 0x00fc0000) >> 18) + base64s.charAt((bits & 0x0003f000) >> 12) + base64s.charAt((bits & 0x00000fc0) >> 6) + base64s.charAt((bits & 0x0000003f));
+        }
+        if (byteData.length - i > 0 && byteData.length - i < 3) {
+            var dual = Boolean(byteData.length - i - 1);
+            bits = ((byteData[i++] & 0xff) << 16) | (dual ? (byteData[i] & 0xff) << 8 : 0);
+            encOut += base64s.charAt((bits & 0x00fc0000) >> 18) + base64s.charAt((bits & 0x0003f000) >> 12) + (dual ? base64s.charAt((bits & 0x00000fc0) >> 6) : '=') + '=';
+        }
+        return encOut;
+    }
+
+});
